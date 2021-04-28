@@ -19,8 +19,10 @@ public class EmisorAgent extends Agent {
             id.setLocalName("receptor");
  
             ACLMessage variable = new ACLMessage(ACLMessage.INFORM);
+ 
             variable.setSender(getAID());
-            variable.setContent("59");
+            variable.addReceiver(id);
+            variable.setContent("60");
  
             send(variable);
             
@@ -34,4 +36,3 @@ public class EmisorAgent extends Agent {
     }
 
 }
-
