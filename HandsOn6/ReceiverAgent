@@ -1,5 +1,5 @@
 package examples.messaging.handson6;
-
+ 
 import jade.core.*;
 import jade.core.behaviours.*;
 import jade.lang.acl.ACLMessage;
@@ -20,7 +20,6 @@ public class ReceiverAgent extends Agent {
             public void action() {
                 System.out.println(" Please execute DummyAgent on GUI and set content with any value bigger than 23 or Execute EmisorAgent");
  
-            //Obtiene el primer mensaje de la cola de mensajes
                 ACLMessage mensaje = receive();
  
                 if (mensaje!= null) {
@@ -32,14 +31,11 @@ public class ReceiverAgent extends Agent {
                     try {
 
                         int i = Integer.parseInt(mensaje.getContent());
-
                         System.out.println("\n Calculating...\n");
                         System.out.println("Advertising | Sales");
                         
-                        for(int adv = 23; adv < i+1; adv++){
-                            Sales = b0 + (b1*adv);
-                            System.out.println("  "+ adv + "           " + Sales);
-                        } 
+                        Sales = b0 + (b1*i);
+                        System.out.println("  "+ i + "           " + Sales);
 
                         System.out.println("End of LinearRegression\n");
                         fin = true; 
@@ -51,7 +47,7 @@ public class ReceiverAgent extends Agent {
 
                     
                 } else{
-                    System.out.println("Receptor: Esperando a recibir mensaje...");
+                    System.out.println("Receptor: Esperando la variable...");
                     block();
                 }
             }
@@ -60,8 +56,6 @@ public class ReceiverAgent extends Agent {
             }
     }
 }
-
-
 
 
 
