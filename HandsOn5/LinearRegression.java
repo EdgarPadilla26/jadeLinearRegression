@@ -17,14 +17,13 @@ public class LinearRegression{
 
     void regression(){ 
 
-        float Eadvertising = 0, Eadvertising2 = 0, Esales = 0, Esales2 = 0;
+        float Eadvertising = 0, Eadvertising2 = 0, Esales = 0;
         float MadvSales = 0; 
         
         for(int i=0; i<this.advertising.length; i++){
             Eadvertising+=advertising[i];
             Esales+=sales[i];
             Eadvertising2+=Math.pow(advertising[i],2);
-            Esales2+=Math.pow(sales[i],2);
             MadvSales+=advertising[i]*sales[i];
         }
 
@@ -33,16 +32,15 @@ public class LinearRegression{
     };
 
     float calculaBeta1(int n, float MadvSales, float sumAdv, float sumSales, float powAdv){
-        float B1 = 0;
-        B1 = (n*MadvSales-sumAdv*sumSales)/(n*powAdv-sumAdv*sumAdv);
-        return B1;
+        return (n*MadvSales-sumAdv*sumSales)/(n*powAdv-sumAdv*sumAdv);
     };
     
     float calculaBeta0(int n, float sumSales, float sumAdv, float B1){
-        float B0 = 0;
-        B0 = (sumSales-B1*sumAdv)/n;
-        return B0;
+        return (sumSales-B1*sumAdv)/n;
     };
 
-}
+    float forecastX(int x){
+        return (this.B0 + this.B1*x);
+    }
 
+}
