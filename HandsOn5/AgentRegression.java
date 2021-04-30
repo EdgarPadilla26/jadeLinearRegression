@@ -29,8 +29,7 @@ public class AgentRegression extends Agent {
             System.out.println("\nSales= " + obj.B0 + " + " + obj.B1 +"Advertising\n");
 
             System.out.println("\nIf Benneton invests 80ME in advertisings this is the result\n");
-            float Sales = (obj.B0+obj.B1*80);
-            System.out.println("Sales= " +  Sales);
+            System.out.println("Sales= " +  obj.forecastX(80));//2041.5057
         }  
     }   
 }
