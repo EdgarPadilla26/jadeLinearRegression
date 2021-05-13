@@ -1,0 +1,40 @@
+package examples.handson;
+
+import jade.core.Agent;
+import jade.core.behaviours.Behaviour;
+import jade.core.behaviours.OneShotBehaviour;
+
+
+public class AgentMLR extends Agent {
+
+    protected void setup() {
+
+        System.out.println("\n This is the Multiple Linear Regression Formula\n");
+        System.out.println("y = Beta0 + Beta1x1 + Beta2X2 \n");
+        //OneShotBehaviour
+        addBehaviour(new Calcular());
+    }
+
+    public class Calcular extends OneShotBehaviour {
+        
+        public void action() {
+
+            //DataSet
+            DataSet data = new DataSet();
+            MultipleLinearRegression obj = new MultipleLinearRegression(data.getAdv(),data.getSales(),data.getYear());
+            obj.regression();
+            System.out.println("\n This is the Multiple Regression Formula with dataSet \n");
+            System.out.println("\nY= " + obj.B0 + " + " + obj.B1 + " X1 + " + obj.B2 + " X2\n");
+            
+            //Interfaz grafica del InputDialog
+            InputDialog2Variables frame = new InputDialog2Variables();
+            frame.setSize(200,200);
+            frame.setLayout(null);
+            frame.setVisible(true);
+        }  
+        public int onEnd() {
+            myAgent.doDelete();
+            return super.onEnd();
+        } 
+    }   
+}
