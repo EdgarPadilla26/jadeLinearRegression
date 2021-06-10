@@ -1,0 +1,140 @@
+package examples.handson;
+
+import jade.core.Agent;
+import jade.core.AID;
+import jade.core.behaviours.*;
+import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
+import jade.domain.DFService;
+import jade.domain.FIPAException;
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.ServiceDescription;
+
+public class StudentAgent extends Agent{
+	
+	private String Ecuacion;
+	private AID[] sellerAgents;
+
+	
+	protected void setup(){
+		
+		System.out.println("Fierro pariente "+getAID().getName()+" estamos listos");
+
+		Object[] args = getArguments();
+		if(args != null && args.length > 0){
+			Ecuacion = (String) args[0];
+			System.out.println("La ecuacion para resolver es: "+Ecuacion);
+
+			addBehaviour(new TickerBehaviour(this, 8000){
+				protected void onTick(){
+					System.out.println("Buscando quien resuelva "+Ecuacion);
+					
+					DFAgentDescription template = new DFAgentDescription();
+					ServiceDescription sd = new ServiceDescription();
+					sd.setType("profe");
+					template.addServices(sd);
+					try{
+						DFAgentDescription[] result = DFService.search(myAgent, template); 
+						System.out.println("Estos agentes tal vez ayuden");
+						sellerAgents = new AID[result.length];
+						for (int i = 0; i < result.length; ++i) {
+							sellerAgents[i] = result[i].getName();
+							System.out.println(sellerAgents[i].getName());
+						}
+					}
+					catch(FIPAException fe){
+						fe.printStackTrace();
+					}
+					myAgent.addBehaviour(new RequestPerformer());
+				}
+			} );
+		}
+		else{
+			System.out.println("No especificaste una ecuacion");
+			doDelete();
+		}
+	}
+
+	protected void takeDown(){
+		System.out.println("Pariente "+getAID().getName()+" finalizado.");
+	}
+
+	private class RequestPerformer extends Behaviour {
+		private AID profesor; 
+		private String solucion;  
+		private int respuestas = 0;
+		private MessageTemplate mt;
+		private int step = 0;
+
+		public void action(){
+			switch (step){
+			case 0:
+				
+				ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
+				for(int i = 0; i < sellerAgents.length; ++i) {
+					cfp.addReceiver(sellerAgents[i]);
+				} 
+				cfp.setContent(Ecuacion);
+				cfp.setConversationId("solveEcuacion");
+				cfp.setReplyWith("cfp"+System.currentTimeMillis()); 
+				myAgent.send(cfp);
+				
+				mt = MessageTemplate.and(MessageTemplate.MatchConversationId("solveEcuacion"),MessageTemplate.MatchInReplyTo(cfp.getReplyWith()));
+				step = 1;
+				break;
+			case 1:
+				
+				ACLMessage reply = myAgent.receive(mt);
+				if(reply != null) {
+					
+					if(reply.getPerformative() == ACLMessage.PROPOSE) {
+						String respuesta = String.valueOf(reply.getContent());				
+                        solucion = respuesta;
+                        profesor = reply.getSender();
+					}
+					respuestas++;
+					if(respuestas >= sellerAgents.length){	
+						step = 2; 
+					}
+				}
+				else{
+					block();
+				}
+				break;
+			case 2:
+				
+				ACLMessage order = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
+				order.addReceiver(profesor);
+				order.setContent(Ecuacion);
+				order.setConversationId("solveEcuacion");
+				order.setReplyWith("order"+System.currentTimeMillis());
+				myAgent.send(order);
+				
+				mt = MessageTemplate.and(MessageTemplate.MatchConversationId("solveEcuacion"),MessageTemplate.MatchInReplyTo(order.getReplyWith()));
+				step = 3;
+				break;
+			case 3:      
+				
+				reply = myAgent.receive(mt);
+				if(reply != null) {
+					
+					if(reply.getPerformative() == ACLMessage.INFORM){
+						System.out.println("ecuacion " + Ecuacion+" resuelta por "+reply.getSender().getName());
+						System.out.println("resultado: "+solucion);
+						myAgent.doDelete();
+					}
+					step = 4;
+				}
+				else{
+					block();
+				}
+				break;
+			}        
+		}
+
+		public boolean done(){
+			if(step == 2 && profesor == null) System.out.println("Intento fallido, la ecuacion: "+Ecuacion+" no tiene agente que la resuelva");
+			return ((step == 2 && profesor == null) || step == 4);
+		}
+	}
+}
